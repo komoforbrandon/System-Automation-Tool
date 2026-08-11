@@ -58,20 +58,32 @@ while getopts "s:d:r:w:vh" opt; do
  esac
 done
 
-if [ -z "$source" ] || [ -z "$dest" ] || [ -z "$retention" ]; then
+if [[ -z "$source" || -z "$dest" ]]; then
   Usage >&2
  exit 1
 fi
 
-if [[ ! "$retention" =~ ^[0-9]+$ ]]; then
-  echo "Retention must be an integer" >&2
+if [[ ! "$retention" =~ ^[0-9]+$ ]] || [[ "$retention" -lt 1 ]]; then
+  echo "Retention must be a positive integer" >&2
 exit 1
 fi
 
 if [[ ! -d "$source" ]]; then
   echo "Source directory does not exist" >&2
-
   exit 1
 fi  
 
 mkdir -p "$dest"
+
+timestamp=$(date +"%Y-%m-%d_%H-%M-%S")
+archive_name="backup-${timestamp}.tar.gz"
+archive_path="${dest}/${archive_name}"
+
+log "INFO" "Creating backup of $source to $archive_path"
+
+if tar -czf "$archive_path" -C "$source" .; then
+  log "INFO" "Backup archive created successfully: $archive_path"
+else
+  alert_failure "Failed to create backup archive: $archive_path"
+  exit 1
+fi
