@@ -13,10 +13,10 @@ Usage() {
 }
 
 log() {
-  local level = "$1"
+  local level="$1"
   shift
 
-  local timestamp = $(date +"%Y-%m-%d %H:%M:%S")
+  local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
   local msg="$*"
   echo "[$timestamp] [$level] $msg"
   if [[ "$verbose" -eq 1 ]]; then
@@ -26,7 +26,7 @@ log() {
 
 alert_failure() {
   local msg="$1"
-  local timestamp = $(date +"%Y-%m-%d %H:%M:%S")
+  local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
   log "ERROR" "$msg"
 
   if [[ -n "$webhook" ]]; then
@@ -87,3 +87,16 @@ else
   alert_failure "Failed to create backup archive: $archive_path"
   exit 1
 fi
+
+log "INFO" "Cleaning up old backups"
+
+mapfile -t backups < <(find "$dest" -maxdepth 1 -name "backup-*.tar.gz" -type f | sort -r)
+
+if [[ "${#backups[@]}" -gt "$retention" ]]; then
+  for backup in "${backups[@]:$retention}"; do
+    log "INFO" "Removing old backup: $backup"
+    rm -f "$backup"
+  done
+fi
+
+log "INFO" "Backup completed successfully"
