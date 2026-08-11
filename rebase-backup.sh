@@ -12,6 +12,16 @@ Usage() {
     echo "Usage: ${0##*/} -s SOURCE -d DEST -r RETENTION -w WEBHOOK [-v]"
 }
 
+log() {
+  local level = "$1"
+  shift
+
+  local timestamp = $(date +"%Y-%m-%d %H:%M:%S")
+  echo "[$timestamp] [$level] $msg"
+  if [[ "$verbose" -eq 1 ]]; then
+    echo "[$timestamp] [$level] $msg" >&2
+  fi
+}
 while getopts "s:d:r:w:vh" opt; do
  case "$opt" in
  s) source="$OPTARG" ;;
