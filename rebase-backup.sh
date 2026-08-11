@@ -36,6 +36,16 @@ alert_failure() {
   fi
 }
 
+tmp_file=$(mktemp -d)
+
+cleanup() {
+  if [[ -n "$tmp_file" && -d "$tmp_file" ]]; then
+    rm -rf "$tmp_file"
+  fi
+}
+
+trap cleanup EXIT
+
 while getopts "s:d:r:w:vh" opt; do
  case "$opt" in
  s) source="$OPTARG" ;;
