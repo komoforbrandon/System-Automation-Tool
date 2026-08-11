@@ -17,6 +17,7 @@ log() {
   shift
 
   local timestamp = $(date +"%Y-%m-%d %H:%M:%S")
+  local msg="$*"
   echo "[$timestamp] [$level] $msg"
   if [[ "$verbose" -eq 1 ]]; then
     echo "[$timestamp] [$level] $msg" >&2
