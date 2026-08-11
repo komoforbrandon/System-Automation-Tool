@@ -16,7 +16,8 @@ log() {
   local level="$1"
   shift
 
-  local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+  local timestamp
+  timestamp=$(date +"%Y-%m-%d %H:%M:%S")
   local msg="$*"
   echo "[$timestamp] [$level] $msg"
   if [[ "$verbose" -eq 1 ]]; then
@@ -26,7 +27,8 @@ log() {
 
 alert_failure() {
   local msg="$1"
-  local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+  local timestamp
+  timestamp=$(date +"%Y-%m-%d %H:%M:%S")
   log "ERROR" "$msg"
 
   if [[ -n "$webhook" ]]; then
