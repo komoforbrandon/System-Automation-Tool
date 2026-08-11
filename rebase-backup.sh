@@ -32,9 +32,10 @@ alert_failure() {
   log "ERROR" "$msg"
 
   if [[ -n "$webhook" ]]; then
-    curl -X POST -H 'Content-type: application/json' \
-      --data "{\"text\":\"Backup Failed: $msg\"}" \
-      "$webhook" >/dev/null 2>&1 || true
+    payload=$(printf '{"content":"Backup Failed: %s"}' "$msg")
+        curl -X POST -H 'Content-type: application/json' \
+            -d "$payload" \
+            "$webhook" >/dev/null 2>&1 || true
   fi
 }
 
