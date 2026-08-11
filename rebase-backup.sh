@@ -22,6 +22,19 @@ log() {
     echo "[$timestamp] [$level] $msg" >&2
   fi
 }
+
+alert_failure() {
+  local msg="$1"
+  local timestamp = $(date +"%Y-%m-%d %H:%M:%S")
+  log "ERROR" "$msg"
+
+  if [[ -n "$webhook" ]]; then
+    curl -X POST -H 'Content-type: application/json' \
+      --data "{\"text\":\"Backup Failed: $msg\"}" \
+      "$webhook" >/dev/null 2>&1 || true
+  fi
+}
+
 while getopts "s:d:r:w:vh" opt; do
  case "$opt" in
  s) source="$OPTARG" ;;
@@ -33,6 +46,7 @@ while getopts "s:d:r:w:vh" opt; do
  *) Usage >&2; exit 1 ;;
  esac
 done
+
 if [ -z "$source" ] || [ -z "$dest" ] || [ -z "$retention" ]; then
   Usage >&2
  exit 1
