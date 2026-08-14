@@ -7,9 +7,9 @@ source=""
 webhook=""
 retention=7
 dest=""
-
+LOG_FILE="/tmp/backup.log"
 Usage() {
-    echo "Usage: ${0##*/} -s SOURCE -d DEST -r RETENTION -w WEBHOOK [-v]"
+    echo "Usage: ${0##*/} -s SOURCE -d DEST -r RETENTION -w WEBHOOK [-v], [-l LOG_FILE] [-h]"
 }
 
 log() {
@@ -19,23 +19,26 @@ log() {
   local timestamp
   timestamp=$(date +"%Y-%m-%d %H:%M:%S")
   local msg="$*"
-  echo "[$timestamp] [$level] $msg"
+  local log_line="[$timestamp] [$level] $msg"
+  
+  echo "$log_line" >> "$LOG_FILE" 2>/dev/null || {
+    echo "[$timestamp] [ERROR] Cannot write to log file: $LOG_FILE" >&2
+  }
+  echo "$log_line"
   if [[ "$verbose" -eq 1 ]]; then
-    echo "[$timestamp] [$level] $msg" >&2
+    echo "$log_line" >&2
   fi
 }
 
 alert_failure() {
   local msg="$1"
-  local timestamp
-  timestamp=$(date +"%Y-%m-%d %H:%M:%S")
   log "ERROR" "$msg"
 
   if [[ -n "$webhook" ]]; then
     payload=$(printf '{"content":"Backup Failed: %s"}' "$msg")
-        curl -X POST -H 'Content-type: application/json' \
-            -d "$payload" \
-            "$webhook" >/dev/null 2>&1 || true
+    if ! curl -s -X POST -H 'Content-type: application/json' -d "$payload" "$webhook" >/dev/null 2>&1; then
+      log "WARN" "Webhook notification failed to send"
+    fi
   fi
 }
 
@@ -49,13 +52,14 @@ cleanup() {
 
 trap cleanup EXIT
 
-while getopts "s:d:r:w:vh" opt; do
+while getopts "s:d:r:w:vl:h" opt; do
  case "$opt" in
  s) source="$OPTARG" ;;
  d) dest="$OPTARG" ;;
  r) retention="$OPTARG" ;;
  w) webhook="$OPTARG" ;;
  v) verbose=1 ;;
+ l) LOG_FILE="$OPTARG" ;;
  h) Usage; exit 0 ;;
  *) Usage >&2; exit 1 ;;
  esac
@@ -93,13 +97,15 @@ fi
 
 log "INFO" "Cleaning up old backups"
 
-mapfile -t backups < <(find "$dest" -maxdepth 1 -name "backup-*.tar.gz" -type f | sort -r)
+mapfile -t backups < <(find "$dest" -maxdepth 1 -name "backup-*.tar.gz" -type f | sort -r || true)
 
 if [[ "${#backups[@]}" -gt "$retention" ]]; then
   for backup in "${backups[@]:$retention}"; do
     log "INFO" "Removing old backup: $backup"
     rm -f "$backup"
   done
+else
+  log "WARN" "No old backups to remove"
 fi
 
 log "INFO" "Backup completed successfully"
