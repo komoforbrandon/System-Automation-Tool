@@ -50,7 +50,7 @@ An idempotent, automated backup script designed to compress directories, send fa
 ## Usage Example
 
 ### Manual Interactive Run
-To back up a local website directory to a storage mount with verbose reporting and a custom log file destination:
+To back up a local site directory to a storage mount with verbose reporting and a custom log file destination:
 
 ```bash
 ./rebase-backup.sh \

@@ -8,12 +8,12 @@ This document outlines three practical execution scenarios to demonstrate and ve
 
 This scenario demonstrates a successful backup generation process. The script compresses the target directory, saves the archive safely to the destination folder, and logs the milestone milestones to both the console and the persistent log file.
 
-### Execution Command
+### Scenario 1 Execution Command
 ```bash
 ./rebase-backup.sh -s ./test_source -d ./test_dest -r 3
 ```
 
-### Visual Verification
+### Scenario 1 Visual Verification
 ![Successful Backup Run](assets/backup-screenshot.png)
 
 ---
@@ -22,12 +22,12 @@ This scenario demonstrates a successful backup generation process. The script co
 
 This scenario demonstrates how the script dynamically monitors backlogs. When the number of stored archives exceeds your specified retention limit (`-r`), the script flags older iterations and cleanly purges them to prevent disk space exhaustion.
 
-### Execution Command
+### Scenario 2 Execution Command
 ```bash
 ./rebase-backup.sh -s ./test_source -d ./test_dest -r 3
 ```
 
-### Visual Verification
+### Scenario 2 Visual Verification
 ![Retention Cleanup and Logging](assets/removing-screenshot.png)
 
 ---
@@ -36,7 +36,7 @@ This scenario demonstrates how the script dynamically monitors backlogs. When th
 
 This scenario demonstrates how the utility alerts administrators when a failure occurs. By targeting a non-existent directory or triggering a compression failure, the script catches the crash, halts execution safely via `set -e`, updates the persistent logs with an `[ERROR]`, and sends a JSON alert payload to your external webhook endpoint.
 
-### Execution Command
+### Scenario 3 Execution Command
 ```bash
 ./rebase-backup.sh -s ./NON_EXISTENT_DIR -d ./test_dest -r 3 -w "https://discord.com"
 ```
